@@ -1,0 +1,18 @@
+id,cvss_score,known_exploited,description
+SYN-0002,9.8,false,XML external entity processing allows remote code execution
+SYN-0003,5.0,true,Server-side template injection exposes request context
+SYN-0004,6.5,false,HTTP request smuggling through malformed headers
+SYN-0005,5.3,false,Denial of service through deeply nested documents
+SYN-0006,3.7,false,Timing side channel in token comparison
+SYN-0007,8.1,false,Credentials written to connection debug logs
+SYN-0008,8.8,false,Improper message length validation corrupts memory
+SYN-0009,9.0,false,Authentication bypass for signalling peers
+SYN-0010,6.1,false,Session fixation after privilege change
+SYN-0011,4.3,false,Information disclosure in default error pages
+SYN-0012,5.5,false,Unsafe default configuration exposes admin endpoint
+SYN-0013,7.8,false,Heap overflow when rendering crafted documents
+SYN-0014,3.1,false,Log level override through untrusted input
+SYN-0015,6.5,false,Entity expansion exhausts memory
+SYN-0016,4.0,false,Verbose errors leak message field names
+SYN-0017,6.1,false,Reflected cross-site scripting in default error template
+SYN-0018,3.3,false,Metrics endpoint accepts unescaped line breaks

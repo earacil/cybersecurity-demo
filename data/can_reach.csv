@@ -1,0 +1,16 @@
+from_host,to_host,port
+dmz-web-01,app-cust-01,8443
+dmz-web-01,app-pay-01,8443
+dmz-api-01,app-pay-01,8443
+dmz-portal-01,app-bill-01,8443
+app-pay-01,db-pay-01,5432
+app-pay-01,app-cust-01,8443
+app-cust-01,app-bill-01,8443
+app-bill-01,db-bill-01,5432
+app-pay-01,mon-01,9200
+app-cust-01,mon-01,9200
+app-bill-01,mon-01,9200
+jump-01,app-prov-01,22
+jump-01,db-sub-01,5432
+jump-01,int-web-01,22
+app-prov-01,db-sub-01,5432

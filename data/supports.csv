@@ -1,0 +1,10 @@
+application,business_service
+online-banking-web,Online Banking
+payments-gateway,Card Payments
+payments-core,Card Payments
+customer-profile-service,Online Banking
+selfcare-portal,Billing and Invoicing
+selfcare-portal,Subscriber Provisioning
+billing-engine,Billing and Invoicing
+provisioning-engine,Subscriber Provisioning
+staff-intranet,Staff Intranet

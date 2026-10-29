@@ -1,6 +1,6 @@
 # Cybersecurity Demo — Neo4j para ciberseguridad
 
-> Estado: **estructura, contexto y guion en borrador (27-oct-2026). Sin dataset sintético y sin Cypher todavía.** Todo lo que describe el modelo y el guion es una **propuesta a validar**.
+> Estado (29-oct-2026): **dataset sintético generado y validado** (`data/`); script de carga escrito y **pendiente de validar en Aura**. Queries, Bloom y dashboards todavía sin escribir. El modelo y el guion siguen siendo una **propuesta a validar**.
 >
 > **¿Eres una IA retomando este proyecto?** Lee primero [`CONTEXTO_IA.md`](CONTEXTO_IA.md): tiene las restricciones duras, el estado exacto, las decisiones abiertas y los próximos pasos.
 
@@ -52,8 +52,9 @@ cybersecurity-demo/
 - [x] Estructura de carpetas creada (misma que `data-lineage-fs-demo`)
 - [x] Fuentes revisadas (páginas de Neo4j, blog y repositorios de ejemplo)
 - [x] Contexto IA, README, modelo simplificado, notas de diseño, runbook y guía en borrador
-- [ ] Cerrar las decisiones abiertas de `CONTEXTO_IA.md`
-- [ ] Generar el dataset sintético pequeño (CSV + generador + validador + carga)
+- [x] Cerrar las decisiones abiertas de `CONTEXTO_IA.md` (29-oct-2026; queda confirmar GDS)
+- [x] Generar el dataset sintético pequeño (CSV + generador + validador + carga)
+- [ ] Ejecutar `data/00_load_live.cypher` en Aura y comparar con `validate_dataset.py`
 - [ ] Escribir las queries de los 3 casos y validarlas en Aura
 - [ ] Probar los dos algoritmos GDS elegidos (centralidad y comunidades) con el dataset
 - [ ] Perspectiva de Bloom y dashboards

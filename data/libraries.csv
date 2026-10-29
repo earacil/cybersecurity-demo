@@ -1,0 +1,15 @@
+name,version
+log4j-core,2.14.1
+observability-sdk,3.0.2
+platform-commons,5.2.0
+service-kit,3.1.0
+http-server-lite,4.8.1
+json-parse-fast,1.9.0
+crypto-utils,3.4.2
+db-connector,6.0.3
+session-manager,2.0.5
+template-engine,3.3.0
+iso8583-codec,1.5.2
+diameter-stack,2.1.0
+xml-binding,2.3.1
+pdf-render,1.2.0

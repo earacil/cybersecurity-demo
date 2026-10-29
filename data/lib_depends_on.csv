@@ -1,0 +1,11 @@
+from_name,from_version,to_name,to_version
+service-kit,3.1.0,platform-commons,5.2.0
+service-kit,3.1.0,json-parse-fast,1.9.0
+platform-commons,5.2.0,observability-sdk,3.0.2
+platform-commons,5.2.0,crypto-utils,3.4.2
+observability-sdk,3.0.2,log4j-core,2.14.1
+db-connector,6.0.3,crypto-utils,3.4.2
+session-manager,2.0.5,crypto-utils,3.4.2
+session-manager,2.0.5,json-parse-fast,1.9.0
+diameter-stack,2.1.0,crypto-utils,3.4.2
+pdf-render,1.2.0,xml-binding,2.3.1

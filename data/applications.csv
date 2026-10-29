@@ -1,0 +1,10 @@
+name,tier
+online-banking-web,P0
+payments-gateway,P0
+payments-core,P0
+customer-profile-service,P1
+selfcare-portal,P1
+billing-engine,P1
+provisioning-engine,P0
+staff-intranet,P2
+legacy-report-tool,P3

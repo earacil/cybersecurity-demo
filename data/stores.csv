@@ -1,0 +1,6 @@
+host,data_store
+db-pay-01,Card Ledger
+db-cust-01,Customer PII DB
+db-bill-01,Billing DB
+db-sub-01,Subscriber Registry
+mon-01,Ops Log Archive

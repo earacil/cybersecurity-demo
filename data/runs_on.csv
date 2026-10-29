@@ -1,0 +1,10 @@
+application,host
+online-banking-web,dmz-web-01
+payments-gateway,dmz-api-01
+payments-core,app-pay-01
+customer-profile-service,app-cust-01
+selfcare-portal,dmz-portal-01
+billing-engine,app-bill-01
+provisioning-engine,app-prov-01
+staff-intranet,int-web-01
+legacy-report-tool,tst-report-01

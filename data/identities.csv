@@ -1,0 +1,6 @@
+name,type
+svc-payments,ServiceAccount
+svc-customer-profile,ServiceAccount
+svc-billing,ServiceAccount
+svc-provisioning,ServiceAccount
+role-monitoring,Role

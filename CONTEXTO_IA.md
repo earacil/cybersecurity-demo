@@ -13,7 +13,7 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 3. **El dataset es y debe seguir siendo sintético y pequeño.** Nada de datos reales de ningún cliente ni entorno. Nada de cargar NVD completo: la simplicidad es un requisito.
 4. **Enfoque defensivo.** Se mide exposición, se prioriza y se cortan caminos; no hay código de explotación, payloads ni procedimientos ofensivos.
 5. **No copiar código ni datos de los repositorios de referencia.** Ninguno de ellos muestra licencia (ver «Fuentes»); se usan solo como inspiración de modelo y de narrativa. Las queries y el dataset se escriben desde cero.
-6. **Por ahora solo guía y contexto.** Instrucción de la persona (27-oct-2026): no escribir nada de la demo más allá de `GUIA_EJECUCION.md`, `RUNBOOK_DEMO.md` y la documentación de contexto. No hay dataset, no hay Cypher con sentencias, no hay Bloom ni dashboards.
+6. ~~Solo guía y contexto.~~ **LEVANTADA el 29-oct-2026**: era una restricción inicial para montar el esqueleto. Ahora se construyen dataset, queries, Bloom y dashboards, por este orden (dataset primero).
 7. **Nada está validado.** Ni el modelo, ni el guion. Todo Cypher **nuevo o modificado** se trata como «a validar» hasta que la persona lo pruebe en Aura o Desktop real (el entorno del agente no tiene Neo4j ni GDS).
 
 ## Decisiones cerradas por la persona (27-oct-2026)
@@ -26,10 +26,21 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 - Nombre del repo: `cybersecurity-demo`.
 - Sin nodo de política de acceso (`IAMPolicy`): se mantiene solo `Identity → DataStore` por claridad. Puede mencionarse de palabra en la narrativa.
 - Orden de los bloques: cadena de suministro → priorización → caminos de ataque. Se perfilará según se avance.
-- Identificadores de vulnerabilidad **sintéticos** (tipo `SYN-0001`), sin cargar NVD. Un CVE real muy conocido solo como gancho opcional de la narrativa (a decidir al escribir el dataset).
+- Identificadores de vulnerabilidad **sintéticos** (tipo `SYN-0002`…), sin cargar NVD. **Un único CVE real como gancho: `CVE-2021-44228` (Log4Shell)**, aparte de la carga base (decidido el 29-oct-2026).
 - Fórmula de riesgo: la propuesta de abajo (CVSS × alcanzabilidad × impacto × explotación conocida), con pesos provisionales que se ajustan al escribir la query.
 - GDS: **un algoritmo de centralidad y uno de comunidades** (no más). Elección provisional: betweenness (centralidad) y Louvain (comunidades); a confirmar al probarlos con el dataset.
 - Primera sesión prevista: una organización concreta (anotada solo en `CurrentFocus.md`). La demo sigue siendo genérica.
+
+## Decisiones cerradas el 29-oct-2026
+
+- Claves de `MERGE`: `Library (name, version)`, `Application.name`, `Host.name` (se elimina `Host.id`), y `name` en el resto; `Vulnerability.id`. Pensado para que las cargas sean legibles.
+- Profundidad máxima de camino variable: **10**.
+- Dependencias de librerías sin ciclos (lo comprueba el validador). `DataStore` se alcanza por `STORES` (red) o por `RUNS_AS` → `HAS_ACCESS_TO` (identidad); el «camino solo por identidad» es el que no tiene ruta de red hasta el host que guarda el dato.
+- Gancho de la narrativa: **`CVE-2021-44228` (Log4Shell), real**, sobre `log4j-core 2.14.1`; todo lo demás es sintético, incluidas las librerías intermedias. Va en CSV aparte y se inserta en directo con `data/01_zero_day_insert.cypher`; `data/02_zero_day_reset.cypher` lo elimina para repetir la demo. La carga base (`data/00_load_live.cypher`) no lo contiene. Historia en `data/README.md`. Log4Shell es un identificador técnico, no un nombre de cliente o partner.
+- Terminología: «joya» en el código es `crown_jewel`; en la prosa se dice **activo crítico** (definido en el glosario de `data/README.md`).
+- Generador `data/generate_dataset.py` como fuente única de verdad; `data/validate_dataset.py` independiente; carga con `LOAD CSV` en `data/00_load_live.cypher`.
+- Sin Docker: la persona ejecuta las queries en su instancia AuraDB (carga, lectura, dashboards y Bloom). Credenciales en `.env` local (ignorado por git).
+- El handle de GitHub de la persona (`earacil`) puede aparecer en las URL; no cuenta como nombre de tercero.
 
 ## Hechos, supuestos y recomendaciones
 
@@ -51,10 +62,10 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 
 | Papel | Algoritmo | Para qué | Cautela |
 |---|---|---|---|
-| **Centralidad** (elegido, provisional) | Betweenness (`gds.betweenness`) | Puntos de estrangulamiento: hosts e identidades por los que pasan más caminos | Calcula sobre todos los pares de nodos, no solo entrada→dato crítico. Se contrasta con el recuento en Cypher de caminos de entrada a joya que pasan por cada nodo |
+| **Centralidad** (elegido, provisional) | Betweenness (`gds.betweenness`) | Puntos de estrangulamiento: hosts e identidades por los que pasan más caminos | Calcula sobre todos los pares de nodos, no solo entrada→dato crítico. Se contrasta con el recuento en Cypher de caminos de entrada a activo crítico que pasan por cada nodo |
 | **Comunidades** (elegido, provisional) | Louvain (`gds.louvain`) sobre los hosts conectados por `CAN_REACH` | Agrupar hosts en zonas naturales y ver qué caminos cruzan de una zona a otra: candidatos a reglas de microsegmentación | Describe cómo se agrupa la red, no el riesgo; se interpreta junto con los caminos. Alternativa más simple: WCC |
 | Alternativa de centralidad | PageRank (`gds.pageRank`) sobre el grafo invertido | Criticidad de identidades y librerías compartidas | Orientativa; «qué librería comparte más aplicaciones» ya sale con un recuento en Cypher |
-| Base (no GDS obligatorio) | Alcanzabilidad y caminos más cortos (`gds.bfs`, `gds.shortestPath.*` o Cypher) | *Blast radius* y camino de entrada a joya | Deterministas y explicables; son la parte fiable de la demo |
+| Base (no GDS obligatorio) | Alcanzabilidad y caminos más cortos (`gds.bfs`, `gds.shortestPath.*` o Cypher) | *Blast radius* y camino de entrada a activo crítico | Deterministas y explicables; son la parte fiable de la demo |
 
 ## Estado exacto del proyecto ahora mismo
 
@@ -67,10 +78,10 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 | `data-model/SCHEMA.md` | 🟡 borrador | 7 nodos y 8 relaciones propuestos (sin `IAMPolicy`, confirmado) |
 | `data-model/NOTAS_DISENO.md` | 🟡 borrador | Qué aporta cada fuente, limitaciones, qué es propuesta |
 | `AURA_SETUP.md` | 🟡 esqueleto | Requisitos previstos |
-| `data/` | ⬜ vacío | Solo `README.md` con el plan |
+| `data/` | 🟢 CSV generados y validados (29-oct-2026) | 18 CSV, `generate_dataset.py`, `validate_dataset.py`, `00_load_live.cypher`, `01_zero_day_insert.cypher`, `02_zero_day_reset.cypher` (a validar en Aura) y `README.md` con la historia del gancho y los resultados esperados |
 | `queries/` | ⬜ esqueletos | 3 `.cypher` con cabecera e índice, **sin sentencias** |
 | `bloom/`, `dashboards/` | ⬜ vacío | Solo `README.md` |
-| `.env` | ⬜ no existe | Solo `.env.example` |
+| `.env` | 🟡 creado, sin credenciales | Plantilla a rellenar (ignorado por git) |
 
 ## Fórmula de riesgo (aceptada por la persona; pesos provisionales)
 
@@ -78,7 +89,7 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 
 ## Decisiones abiertas
 
-1. **CVE real como gancho**: ¿se incluye uno solo (Log4Shell) en la narrativa de día cero, o nada? Recomendación: opcional; solo si aporta.
+1. ~~**CVE real como gancho**~~ Cerrada (29-oct-2026): Log4Shell (`CVE-2021-44228`), aparte de la carga base.
 2. **Dashboards**: cuántos y de qué. Se decide al tener las queries.
 3. **Confirmar betweenness y Louvain** tras probarlos con el dataset (o cambiar a PageRank / WCC).
 4. **Orden de los bloques**: fijado (cadena de suministro → priorización → caminos de ataque), a perfilar según se avance.

@@ -6,7 +6,7 @@ Organizado por **caso de uso**, no por tipo de nodo (mismo criterio que en `data
 
 | Fichero | Caso | Qué contendrá (propuesta) |
 |---|---|---|
-| `01_supply_chain_zero_day.cypher` | 1 · Cadena de suministro | Ingesta idempotente de una vulnerabilidad nueva, aplicaciones afectadas por dependencias transitivas, hosts expuestos y servicios de negocio, librería compartida, reset |
+| `01_supply_chain_zero_day.cypher` | 1 · Cadena de suministro | (La ingesta idempotente del día cero y su reset viven en `../data/01_zero_day_insert.cypher` y `02_zero_day_reset.cypher`.) Aplicaciones afectadas por dependencias transitivas, hosts expuestos y servicios de negocio, librería compartida, reset |
 | `02_vulnerability_prioritization.cypher` | 2 · Priorización | CVSS frente a riesgo contextual (alcanzabilidad, impacto, explotación conocida), lista priorizada |
 | `03_attack_paths_gds.cypher` | 3 · Caminos de ataque | Caminos a activos críticos, blast radius, no alcanzables, puntos de estrangulamiento en Cypher, GDS (centralidad y comunidades, a validar) y fallback en Cypher puro |
 

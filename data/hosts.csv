@@ -1,0 +1,16 @@
+name,environment,internet_exposed
+dmz-web-01,Production,true
+dmz-api-01,Production,true
+dmz-portal-01,Production,true
+app-pay-01,Production,false
+app-cust-01,Production,false
+app-bill-01,Production,false
+db-pay-01,Production,false
+db-cust-01,Production,false
+db-bill-01,Production,false
+mon-01,Production,false
+jump-01,Production,false
+app-prov-01,Production,false
+db-sub-01,Production,false
+int-web-01,Production,false
+tst-report-01,Test,false

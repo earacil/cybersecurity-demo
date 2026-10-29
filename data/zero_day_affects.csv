@@ -1,0 +1,2 @@
+vulnerability_id,library_name,library_version
+CVE-2021-44228,log4j-core,2.14.1

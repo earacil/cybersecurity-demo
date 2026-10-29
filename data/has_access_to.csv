@@ -1,0 +1,7 @@
+identity,data_store
+svc-payments,Card Ledger
+svc-customer-profile,Customer PII DB
+svc-billing,Billing DB
+svc-billing,Customer PII DB
+svc-provisioning,Subscriber Registry
+role-monitoring,Ops Log Archive

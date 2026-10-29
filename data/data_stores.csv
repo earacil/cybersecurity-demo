@@ -1,0 +1,6 @@
+name,data_class,crown_jewel
+Customer PII DB,PII,true
+Card Ledger,Financial,true
+Subscriber Registry,Subscriber,true
+Billing DB,Financial,false
+Ops Log Archive,Operational,false

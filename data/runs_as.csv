@@ -1,0 +1,6 @@
+host,identity
+app-pay-01,svc-payments
+app-cust-01,svc-customer-profile
+app-bill-01,svc-billing
+app-prov-01,svc-provisioning
+mon-01,role-monitoring

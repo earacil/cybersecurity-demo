@@ -2,6 +2,8 @@
 
 > **Estado: propuesta sin validar**, simplificada a propósito. Parte del modelo común que usan los tres repositorios de ejemplo de Neo4j (priorización, caminos de ataque y cadena de suministro comparten grafo) y lo reduce a lo mínimo. Procedencia: **FUENTE** (aparece en las páginas o repos de referencia, entre paréntesis cuál) o **PROPUESTA** (añadido o cambiado para esta demo). Decisiones abiertas en `../CONTEXTO_IA.md`.
 
+**Claves de `MERGE` (decididas el 29-oct-2026):** `Vulnerability.id` · `Library (name, version)` · `Application.name` · `Host.name` (se elimina `Host.id`) · `Identity.name` · `DataStore.name` · `BusinessService.name`. Profundidad máxima de caminos variables: **10**. Dataset implementado en `../data/`.
+
 Convención: **identificadores en inglés**; prosa en español. Fuentes: **VPEM**, **APA**, **SBOM** = las tres subpáginas/repos de casos de uso; **Blog** = artículo de caminos de ataque.
 
 ## Nodos (7)
@@ -11,7 +13,7 @@ Convención: **identificadores en inglés**; prosa en español. Fuentes: **VPEM*
 | `Vulnerability` | `id`, `cvss_score`, `known_exploited` (boolean), `description` | FUENTE (VPEM: `CVE`, `baseScore`, flag KEV); renombrado y recortado | Lo que hay que priorizar. El identificador puede ser sintético (ver `../CONTEXTO_IA.md`, decisión abierta 1: propuesta de identificadores sintéticos) |
 | `Library` | `name`, `version` | FUENTE (SBOM: `Library`) | Componente de software, con dependencias transitivas |
 | `Application` | `name`, `tier` (`"P0"` \| `"P1"` \| `"P2"` \| `"P3"`) | FUENTE (VPEM/APA/SBOM: `Application.tier`) | Lo que se ejecuta; el `tier` aproxima el impacto de negocio |
-| `Host` | `id`, `name`, `environment` (`"Production"` \| `"Test"`), `internet_exposed` (boolean) | FUENTE (VPEM/APA: `ComputeInstance`, `public_ip`); la IP pública pasa a booleano | Servidor o función de red donde corre una aplicación; `internet_exposed = true` marca el punto de entrada |
+| `Host` | `name` (clave), `environment` (`"Production"` \| `"Test"`), `internet_exposed` (boolean) | FUENTE (VPEM/APA: `ComputeInstance`, `public_ip`); la IP pública pasa a booleano | Servidor o función de red donde corre una aplicación; `internet_exposed = true` marca el punto de entrada |
 | `Identity` | `name`, `type` (`"ServiceAccount"` \| `"Role"` \| `"User"`) | FUENTE (VPEM/APA/Blog: `Identity`) | Qué credenciales hereda quien compromete un host |
 | `DataStore` | `name`, `data_class` (`"PII"` \| `"Financial"` \| `"Subscriber"` \| `"Operational"`), `crown_jewel` (boolean) | FUENTE (VPEM: `CloudService`/S3; APA: BD «Crown Jewel» P0; Blog: activo crítico) | El objetivo del atacante. `crown_jewel = true` es el «activo crítico» |
 | `BusinessService` | `name`, `criticality` (`"High"` \| `"Medium"` \| `"Low"`) | PROPUESTA (VPEM habla de impacto de negocio sin definir un nodo) | Da sabor banca/telecom y traduce el riesgo a negocio (ejemplos: pagos con tarjeta, banca online, aprovisionamiento de abonados, facturación) |
