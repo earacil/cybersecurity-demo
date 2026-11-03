@@ -2,7 +2,7 @@
 
 Organizado por **caso de uso**, no por tipo de nodo (mismo criterio que en `data-lineage-fs-demo`).
 
-> **Estado (3-nov-2026):** carga base y `01` **validadas en Aura** por la persona. `02` y `03` (incluido GDS) están escritas y **pendientes de validar**; no se han ejecutado todavía. Todas las cifras «esperado» de los comentarios salen de `python3 ../data/validate_dataset.py` (cálculo en Python independiente de Neo4j), no de una ejecución real. Los repositorios de referencia no tienen licencia: las queries se escriben desde cero.
+> **Estado (3-nov-2026):** carga base y `01` y `02` **validadas en Aura** por la persona. `03` (incluido GDS) está escrita y **pendiente de validar**; no se ha ejecutado todavía. Todas las cifras «esperado» de los comentarios salen de `python3 ../data/validate_dataset.py` (cálculo en Python independiente de Neo4j), no de una ejecución real. Los repositorios de referencia no tienen licencia: las queries se escriben desde cero.
 
 **Orden de ejecución (importa):** carga base → `01` (A. insertar el día cero) → resto de `01` → `02` → `03`. Las partes `02`.G y `01`.G dependen de que el día cero esté insertado o borrado, respectivamente.
 

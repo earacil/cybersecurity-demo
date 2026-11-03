@@ -79,8 +79,8 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 | `data-model/NOTAS_DISENO.md` | 🟡 borrador | Qué aporta cada fuente, limitaciones, qué es propuesta |
 | `AURA_SETUP.md` | 🟡 esqueleto | Requisitos previstos |
 | `data/` | 🟢 CSV generados y validados (29-oct-2026) | 18 CSV, `generate_dataset.py`, `validate_dataset.py`, `00_load_live.cypher` (validado en Aura por la persona: carga completa y recuentos correctos) y `README.md` con la historia del gancho y los resultados esperados |
-| `queries/` | ✅ `01` **validada y cerrada** (3-nov-2026) · 🟡 `02` y `03` escritas, **a validar en Aura** | 3 `.cypher` completos con cifras «esperado» calculadas por `validate_dataset.py`; `01` incluye la inserción del día cero (A) y el reset (G); `03` incluye GDS (betweenness y Louvain) con fallback en Cypher puro |
-| `dashboards/` | ✅ 1 de 3 hecho y exportado de Aura (3-nov-2026) | `supply_chain_vulnerability_impact_dashboard.json` (con tarjeta de grafo «Affected Services Map», añadida por la persona) + `DASHBOARDS_GUIDE.md`; faltan priorización y caminos de ataque |
+| `queries/` | ✅ `01` **validada y cerrada** y ✅ `02` **validada** (3-nov-2026) · 🟡 `03` escrita, **a validar en Aura** | 3 `.cypher` completos con cifras «esperado» calculadas por `validate_dataset.py`; `01` incluye la inserción del día cero (A) y el reset (G); `03` incluye GDS (betweenness y Louvain) con fallback en Cypher puro |
+| `dashboards/` | ✅ pestaña 1 exportada de Aura · 🟡 pestaña 2 «Risk Prioritization» añadida por el agente, a importar y comprobar (3-nov-2026) | `supply_chain_vulnerability_impact_dashboard.json` (con tarjeta de grafo «Affected Services Map», añadida por la persona) + `DASHBOARDS_GUIDE.md`; falta el de caminos de ataque |
 | `bloom/` | ⬜ vacío | Solo `README.md`; el recorrido de búsqueda y expansión está en la guía (§4) y en `queries/01` F.4 |
 | `.env` | 🟡 creado, sin credenciales | Plantilla a rellenar (ignorado por git) |
 
