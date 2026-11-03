@@ -36,7 +36,7 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 - Claves de `MERGE`: `Library (name, version)`, `Application.name`, `Host.name` (se elimina `Host.id`), y `name` en el resto; `Vulnerability.id`. Pensado para que las cargas sean legibles.
 - Profundidad máxima de camino variable: **10**.
 - Dependencias de librerías sin ciclos (lo comprueba el validador). `DataStore` se alcanza por `STORES` (red) o por `RUNS_AS` → `HAS_ACCESS_TO` (identidad); el «camino solo por identidad» es el que no tiene ruta de red hasta el host que guarda el dato.
-- Gancho de la narrativa: **`CVE-2021-44228` (Log4Shell), real**, sobre `log4j-core 2.14.1`; todo lo demás es sintético, incluidas las librerías intermedias. Va en CSV aparte y se inserta en directo con `data/01_zero_day_insert.cypher`; `data/02_zero_day_reset.cypher` lo elimina para repetir la demo. La carga base (`data/00_load_live.cypher`) no lo contiene. Historia en `data/README.md`. Log4Shell es un identificador técnico, no un nombre de cliente o partner.
+- Gancho de la narrativa: **`CVE-2021-44228` (Log4Shell), real**, sobre `log4j-core 2.14.1`; todo lo demás es sintético, incluidas las librerías intermedias. Va en CSV aparte (`data/zero_day_*.csv`) y se inserta en directo desde `queries/01_supply_chain_zero_day.cypher` (parte A); la parte G lo elimina para repetir la demo (decidido el 29-oct-2026: va en `queries/` por simplicidad). La carga base (`data/00_load_live.cypher`) no lo contiene. Historia en `data/README.md`. Log4Shell es un identificador técnico, no un nombre de cliente o partner.
 - Terminología: «joya» en el código es `crown_jewel`; en la prosa se dice **activo crítico** (definido en el glosario de `data/README.md`).
 - Generador `data/generate_dataset.py` como fuente única de verdad; `data/validate_dataset.py` independiente; carga con `LOAD CSV` en `data/00_load_live.cypher`.
 - Sin Docker: la persona ejecuta las queries en su instancia AuraDB (carga, lectura, dashboards y Bloom). Credenciales en `.env` local (ignorado por git).
@@ -78,9 +78,10 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 | `data-model/SCHEMA.md` | 🟡 borrador | 7 nodos y 8 relaciones propuestos (sin `IAMPolicy`, confirmado) |
 | `data-model/NOTAS_DISENO.md` | 🟡 borrador | Qué aporta cada fuente, limitaciones, qué es propuesta |
 | `AURA_SETUP.md` | 🟡 esqueleto | Requisitos previstos |
-| `data/` | 🟢 CSV generados y validados (29-oct-2026) | 18 CSV, `generate_dataset.py`, `validate_dataset.py`, `00_load_live.cypher`, `01_zero_day_insert.cypher`, `02_zero_day_reset.cypher` (a validar en Aura) y `README.md` con la historia del gancho y los resultados esperados |
-| `queries/` | ⬜ esqueletos | 3 `.cypher` con cabecera e índice, **sin sentencias** |
-| `bloom/`, `dashboards/` | ⬜ vacío | Solo `README.md` |
+| `data/` | 🟢 CSV generados y validados (29-oct-2026) | 18 CSV, `generate_dataset.py`, `validate_dataset.py`, `00_load_live.cypher` (validado en Aura por la persona: carga completa y recuentos correctos) y `README.md` con la historia del gancho y los resultados esperados |
+| `queries/` | ✅ `01` **validada y cerrada** (3-nov-2026) · 🟡 `02` y `03` escritas, **a validar en Aura** | 3 `.cypher` completos con cifras «esperado» calculadas por `validate_dataset.py`; `01` incluye la inserción del día cero (A) y el reset (G); `03` incluye GDS (betweenness y Louvain) con fallback en Cypher puro |
+| `dashboards/` | ✅ 1 de 3 hecho y exportado de Aura (3-nov-2026) | `supply_chain_vulnerability_impact_dashboard.json` (con tarjeta de grafo «Affected Services Map», añadida por la persona) + `DASHBOARDS_GUIDE.md`; faltan priorización y caminos de ataque |
+| `bloom/` | ⬜ vacío | Solo `README.md`; el recorrido de búsqueda y expansión está en la guía (§4) y en `queries/01` F.4 |
 | `.env` | 🟡 creado, sin credenciales | Plantilla a rellenar (ignorado por git) |
 
 ## Fórmula de riesgo (aceptada por la persona; pesos provisionales)
@@ -107,7 +108,7 @@ Orden de magnitud: unos 12-15 hosts, 8-10 aplicaciones, 12-15 librerías, 15-25 
 - Consistencia estricta y un `validate_dataset.py` independiente del generador, con resultados esperados calculados fuera de Neo4j (como en `data-lineage-fs-demo`).
 
 ### 3. Queries (`queries/`)
-Un fichero por caso de uso, literales cambiables marcados `← CAMBIA`, caminos acotados, y fallback en Cypher puro para lo que use GDS. Todo «a validar» hasta probarlo en Aura.
+Escritas (29-oct-2026). Un fichero por caso de uso, literales cambiables marcados `← CAMBIA`, caminos acotados a 10, y fallback en Cypher puro para lo que use GDS. Todo «a validar» hasta probarlo en Aura. Criterio de aceptación: cada query devuelve lo que dice su comentario `esperado:`.
 
 ### 4. Bloom, dashboards, runbook y guía
 Perspectiva exportada del Aura real (sin inventar estilos), dashboards con las queries marcadas, guion con comandos y ensayo con cronómetro.
@@ -123,10 +124,10 @@ cybersecurity-demo/
 ├── AURA_SETUP.md           ← preparación de Aura (esqueleto)
 ├── .gitignore · .env.example
 ├── data-model/             ← SCHEMA.md (borrador) · NOTAS_DISENO.md
-├── data/                   ← README.md (plan del dataset)
-├── queries/                ← README.md + 01..03 .cypher (esqueletos sin sentencias)
+├── data/                   ← CSV, generate/validate_dataset.py, 00_load_live.cypher, README.md (escenario e historia)
+├── queries/                ← README.md + 01..03 .cypher (a validar en Aura)
 ├── bloom/                  ← README.md
-└── dashboards/             ← README.md
+└── dashboards/             ← README.md, DASHBOARDS_GUIDE.md, supply_chain_vulnerability_impact_dashboard.json
 ```
 
 ## Fuentes (leídas el 27-oct-2026)

@@ -1,6 +1,6 @@
 # Cybersecurity Demo — Neo4j para ciberseguridad
 
-> Estado (29-oct-2026): **dataset sintético generado y validado** (`data/`); script de carga escrito y **pendiente de validar en Aura**. Queries, Bloom y dashboards todavía sin escribir. El modelo y el guion siguen siendo una **propuesta a validar**.
+> Estado (29-oct-2026): **dataset sintético generado y cargado en Aura (validado)**; **queries `01` validada (3-nov-2026); `02` y `03` escritas, pendientes de validar en Aura**. Dashboard de cadena de suministro hecho y exportado de Aura; Bloom y los otros dos dashboards, pendientes. El modelo y el guion siguen siendo una **propuesta a validar**.
 >
 > **¿Eres una IA retomando este proyecto?** Lee primero [`CONTEXTO_IA.md`](CONTEXTO_IA.md): tiene las restricciones duras, el estado exacto, las decisiones abiertas y los próximos pasos.
 
@@ -41,9 +41,9 @@ cybersecurity-demo/
 ├── data-model/
 │   ├── SCHEMA.md                  ← borrador: 7 nodos y 8 relaciones
 │   └── NOTAS_DISENO.md            ← qué dice cada fuente, qué es propuesta, limitaciones
-├── data/                          ← (vacío) dataset sintético pequeño; ver data/README.md
-├── queries/                       ← esqueletos .cypher por caso de uso (solo cabeceras); ver queries/README.md
-├── dashboards/                    ← (vacío) exports de Aura Dashboards
+├── data/                          ← dataset sintético (CSV + generador + validador + carga); ver data/README.md
+├── queries/                       ← .cypher por caso de uso (`01` validada; `02` y `03` a validar en Aura); ver queries/README.md
+├── dashboards/                    ← dashboard de cadena de suministro (exportado de Aura); faltan los otros dos
 └── bloom/                         ← (vacío) perspectiva de Bloom
 ```
 
@@ -54,8 +54,9 @@ cybersecurity-demo/
 - [x] Contexto IA, README, modelo simplificado, notas de diseño, runbook y guía en borrador
 - [x] Cerrar las decisiones abiertas de `CONTEXTO_IA.md` (29-oct-2026; queda confirmar GDS)
 - [x] Generar el dataset sintético pequeño (CSV + generador + validador + carga)
-- [ ] Ejecutar `data/00_load_live.cypher` en Aura y comparar con `validate_dataset.py`
-- [ ] Escribir las queries de los 3 casos y validarlas en Aura
+- [x] Ejecutar `data/00_load_live.cypher` en Aura y comparar con `validate_dataset.py` (validado por la persona, 29-oct-2026)
+- [x] Escribir las queries de los 3 casos (29-oct-2026)
+- [ ] Validar las queries en Aura (comparar con los comentarios `esperado:`)
 - [ ] Probar los dos algoritmos GDS elegidos (centralidad y comunidades) con el dataset
 - [ ] Perspectiva de Bloom y dashboards
 - [ ] Completar guion y guía con comandos y ensayar con cronómetro

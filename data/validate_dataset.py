@@ -257,7 +257,7 @@ def risk_rows(vuln_rows, affect_rows):
                 cvss = float(v["cvss_score"])
                 rf, imp = reach_factor(h), impact_factor(h)
                 ex = 1.5 if v["known_exploited"] == "true" else 1.0
-                out[(vid, h)] = dict(vuln=vid, host=h, app=a, cvss=cvss, reach=rf, impact=imp, exploit=ex,
+                out[(vid, h)] = dict(vuln=vid, host=h, app=a, lib=lb[0], cvss=cvss, reach=rf, impact=imp, exploit=ex,
                                      risk=round(cvss * rf * imp * ex, 2))
     return out
 
@@ -462,3 +462,114 @@ for h in H:
     comps.append(sorted(comp))
 for c in sorted(comps, key=len, reverse=True):
     print(f"    ({len(c)}) {', '.join(c)}")
+
+
+# ---------------------------------------------------------------------------------------
+# Esperados de queries/02 (rankings, acciones por librería) y queries/03 (aristas, zonas, betweenness)
+# ---------------------------------------------------------------------------------------
+def comp_rank(rows, key, r):
+    """Ranking de competición (empates comparten puesto): 1 + nº de filas estrictamente mayores."""
+    return 1 + sum(1 for x in rows if x[key] > r[key])
+
+
+base_rows = list(base_risk.values())
+print("\n=== queries/02 · RANKINGS (carga base; ranking de competición sobre las %d parejas vulnerabilidad-host) ===" % len(base_rows))
+print(f"    {'vuln':9s} {'host':14s} {'cvss':>5s} {'riesgo':>7s} {'rank_cvss':>9s} {'rank_riesgo':>11s}")
+for r in sorted(base_rows, key=lambda r: (-r["risk"], r["vuln"], r["host"]))[:6]:
+    print(f"    {r['vuln']:9s} {r['host']:14s} {r['cvss']:5.1f} {r['risk']:7.2f} {comp_rank(base_rows,'cvss',r):9d} {comp_rank(base_rows,'risk',r):11d}")
+for r in base_rows:
+    if (r["vuln"], r["host"]) == ("SYN-0002", "tst-report-01"):
+        print(f"    {r['vuln']:9s} {r['host']:14s} {r['cvss']:5.1f} {r['risk']:7.2f} {comp_rank(base_rows,'cvss',r):9d} {comp_rank(base_rows,'risk',r):11d}  <- Critical aislada")
+by_cvss = sorted(vulns, key=lambda v: (-float(v["cvss_score"]), v["id"]))
+print("  Posición de cada vulnerabilidad en el ranking por CVSS puro (17): " +
+      ", ".join(f"{v['id'][4:]}={i}" for i, v in enumerate(by_cvss, 1) if v["id"] in ("SYN-0002", "SYN-0003", "SYN-0008")))
+print("  Parejas con riesgo > 9.8: %d · con riesgo 22.5 (empate en cabeza): %d" %
+      (sum(1 for r in base_rows if r["risk"] > 9.8), sum(1 for r in base_rows if r["risk"] == 22.5)))
+
+print("\n=== queries/02 · ACCIONES POR LIBRERÍA (carga base): vulnerabilidades, hosts, riesgo máximo y total ===")
+acts = defaultdict(lambda: dict(v=set(), h=set(), mx=0.0, tot=0.0))
+for r in base_rows:
+    a = acts[r["lib"]]
+    a["v"].add(r["vuln"]); a["h"].add(r["host"]); a["mx"] = max(a["mx"], r["risk"]); a["tot"] += r["risk"]
+print(f"    {'librería':18s} {'vulns':>5s} {'hosts':>5s} {'máx':>7s} {'total':>8s}")
+for lb, a in sorted(acts.items(), key=lambda x: (-x[1]["mx"], -x[1]["tot"], x[0])):
+    print(f"    {lb:18s} {len(a['v']):5d} {len(a['h']):5d} {a['mx']:7.2f} {a['tot']:8.2f}")
+
+print("\n=== queries/03 · ARISTAS CAN_REACH por las que pasan los caminos entrada->activo crítico ===")
+ecnt = defaultdict(int)
+for e, hs, i, d, route in paths:
+    for x, y in zip(hs, hs[1:]):
+        ecnt[(x, y)] += 1
+for (x, y), c in sorted(ecnt.items(), key=lambda t: (-t[1], t[0])):
+    print(f"    {x:14s} -> {y:14s} {c:3d}/{len(paths)} ({100*c/len(paths):.0f}%)")
+
+print("\n=== queries/03 · ZONAS POR ALCANZABILIDAD (fallback en Cypher puro de las comunidades) ===")
+zones = defaultdict(list)
+for h in sorted(H):
+    zones["expuesto" if h in exposed else ("alcanzable desde expuesto" if h in reach_from_exposed else "aislado")].append(h)
+for z, hs_ in zones.items():
+    print(f"    {z:26s} ({len(hs_)}): {', '.join(hs_)}")
+
+# Betweenness dirigida (Brandes), sin normalizar, sobre la proyección 'attack_graph' de queries/03:
+# nodos Host/Identity/DataStore con aristas CAN_REACH, RUNS_AS, HAS_ACCESS_TO y STORES en su dirección natural.
+g = defaultdict(list)
+for r in can_reach:
+    g[r["from_host"]].append(r["to_host"])
+for r in runs_as:
+    g[r["host"]].append(r["identity"])
+for r in has_access:
+    g[r["identity"]].append(r["data_store"])
+for r in stores_rel:
+    g[r["host"]].append(r["data_store"])
+nodes_g = set(g) | {m for v in g.values() for m in v}
+bc = dict.fromkeys(nodes_g, 0.0)
+for src in nodes_g:
+    stack, pred = [], defaultdict(list)
+    sigma, dist = dict.fromkeys(nodes_g, 0), dict.fromkeys(nodes_g, -1)
+    sigma[src], dist[src] = 1, 0
+    q = deque([src])
+    while q:
+        v = q.popleft()
+        stack.append(v)
+        for w in g[v]:
+            if dist[w] < 0:
+                dist[w] = dist[v] + 1
+                q.append(w)
+            if dist[w] == dist[v] + 1:
+                sigma[w] += sigma[v]
+                pred[w].append(v)
+    delta = dict.fromkeys(nodes_g, 0.0)
+    while stack:
+        w = stack.pop()
+        for v in pred[w]:
+            delta[v] += sigma[v] / sigma[w] * (1 + delta[w])
+        if w != src:
+            bc[w] += delta[w]
+kind = lambda n: "Host" if n in H else ("Identity" if n in I else "DataStore")
+print("\n=== queries/03 · BETWEENNESS esperada (Brandes dirigido, sobre %d nodos de 'attack_graph'; top 8) ===" % len(nodes_g))
+for n, v in sorted(bc.items(), key=lambda t: (-t[1], t[0]))[:8]:
+    print(f"    {kind(n):9s} {n:22s} {v:6.1f}")
+print("  Louvain (comunidades sobre CAN_REACH no dirigido): no se calcula aquí (no es determinista). Esperado: nunca mezcla")
+print("  componentes distintos, así que habrá al menos 4 comunidades (las 4 componentes conexas de arriba); la principal de 9")
+print("  hosts puede partirse en 2-3 comunidades. Se valida a ojo en Aura.")
+
+print("\n=== queries/03 · WHAT-IF: caminos entrada->activo crítico antes y después de cortar algo ===")
+by_e_before = defaultdict(int)
+for p in paths:
+    by_e_before[p[0]] += 1
+
+
+def what_if(label, pred):
+    after = defaultdict(int)
+    for p in paths:
+        if not pred(p):
+            after[p[0]] += 1
+    print(f"  {label}")
+    for e in sorted(by_e_before):
+        print(f"    {e:14s} {by_e_before[e]} -> {after[e]}" + ("   (ya no llega a ningún activo crítico)" if after[e] == 0 else ""))
+
+
+uses_edge = lambda a, b: (lambda p: any((x, y) == (a, b) for x, y in zip(p[1], p[1][1:])))
+what_if("quitar el permiso svc-billing -> Customer PII DB", lambda p: p[2] == "svc-billing" and p[3] == "Customer PII DB")
+what_if("cortar la regla de red app-pay-01 -> app-cust-01", uses_edge("app-pay-01", "app-cust-01"))
+what_if("aislar el host app-pay-01 (todo camino que lo cruza)", lambda p: "app-pay-01" in p[1])

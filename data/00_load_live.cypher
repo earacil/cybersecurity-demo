@@ -15,7 +15,8 @@
 //      vez, ve sentencia a sentencia (separadas por `;`).
 //   3. Ejecuta la VERIFICACIÓN. Debe dar 70 nodos y 103 relaciones (sin el día cero).
 //   4. El día cero (CVE-2021-44228) NO forma parte de esta carga: va aparte, para lanzarlo EN DIRECTO:
-//        01_zero_day_insert.cypher  → lo inserta        02_zero_day_reset.cypher → lo elimina (reset)
+//        queries/01_supply_chain_zero_day.cypher → parte A lo inserta, parte H lo elimina (reset)
+//      (sus CSV, zero_day_*.csv, viven aquí en data/ y los lee ese fichero con el mismo `baseUrl`)
 //      Así el grafo de partida es 100 % sintético y el único CVE real es el de la historia.
 //
 // EL ORDEN IMPORTA: restricciones → software → infraestructura → identidad y datos → negocio.

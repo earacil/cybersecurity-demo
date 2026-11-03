@@ -21,9 +21,11 @@ python3 validate_dataset.py    # valida y calcula los resultados esperados, fuer
 
 | Orden | Fichero | Cuándo | Efecto |
 |---|---|---|---|
-| 1 | `00_load_live.cypher` | Antes de la demo | Carga base **sintética**, por capas: restricciones → software → infraestructura → identidad y datos → negocio. **70 nodos y 103 relaciones** |
-| 2 | `01_zero_day_insert.cypher` | **En directo** | Inserta Log4Shell y su `AFFECTS`: 71 nodos y 104 relaciones |
-| 3 | `02_zero_day_reset.cypher` | Para repetir el ensayo | Elimina solo `CVE-2021-44228`: vuelve a 70 y 103 |
+| 1 | `data/00_load_live.cypher` | Antes de la demo | Carga base **sintética**, por capas: restricciones → software → infraestructura → identidad y datos → negocio. **70 nodos y 103 relaciones** |
+| 2 | `queries/01_supply_chain_zero_day.cypher`, parte A | **En directo** | Inserta Log4Shell y su `AFFECTS` (lee `zero_day_*.csv` de esta carpeta): 71 nodos y 104 relaciones |
+| 3 | `queries/01_supply_chain_zero_day.cypher`, parte G | Para repetir el ensayo | Elimina solo `CVE-2021-44228`: vuelve a 70 y 103 |
+
+El día cero vive en `queries/` porque es parte de la narrativa del caso 1 y se lanza en directo; los CSV se quedan en `data/` porque el generador y el validador los producen y comprueban.
 
 ## Ficheros
 
@@ -40,7 +42,7 @@ python3 validate_dataset.py    # valida y calcula los resultados esperados, fuer
 | `runs_on.csv` · `can_reach.csv` · `runs_as.csv` · `has_access_to.csv` · `stores.csv` · `supports.csv` | resto de relaciones | 9 · 15 · 5 · 6 · 5 · 9 |
 | `zero_day_vulnerability.csv` · `zero_day_affects.csv` | **El gancho `CVE-2021-44228`**, aparte a propósito | 1 · 1 |
 | `generate_dataset.py` · `validate_dataset.py` | generador y validador | — |
-| `00_load_live.cypher` · `01_zero_day_insert.cypher` · `02_zero_day_reset.cypher` | carga, día cero en directo y reset | — |
+| `00_load_live.cypher` | carga base por capas (el día cero y su reset están en `../queries/01_supply_chain_zero_day.cypher`) | — |
 
 Claves de `MERGE`: `Vulnerability.id` · `Library (name, version)` · `Application.name` · `Host.name` · `Identity.name` · `DataStore.name` · `BusinessService.name`. Profundidad máxima de camino variable en las queries: **10**.
 
@@ -61,7 +63,7 @@ Una entidad ficticia con dos negocios, banca y telecom, y cinco servicios de neg
 **La historia que contar.**
 1. Llega el aviso: vulnerabilidad crítica en una librería de logging, ya explotada.
 2. Ninguna aplicación depende de `log4j-core` directamente: dependen de `platform-commons` y de `service-kit`, que dependen de `observability-sdk`, que depende de `log4j-core`. Sin grafo, es una búsqueda manual de semanas en repositorios.
-3. Se inserta el CVE en el grafo (`01_zero_day_insert.cypher`) y se pregunta qué se ve afectado.
+3. Se inserta el CVE en el grafo (`../queries/01_supply_chain_zero_day.cypher`, parte A) y se pregunta qué se ve afectado.
 
 **Lo que debe salir (calculado fuera de Neo4j):**
 
@@ -89,4 +91,4 @@ Una entidad ficticia con dos negocios, banca y telecom, y cinco servicios de neg
 
 1. Sube la carpeta `data/` a un repo público y fija `baseUrl` (ver `.env.example` y `00_load_live.cypher`, PASO 0).
 2. Ejecuta `00_load_live.cypher` por segmentos en el Query tool de Aura y compara la verificación con la salida de `validate_dataset.py`.
-3. En directo, `01_zero_day_insert.cypher`; para repetir, `02_zero_day_reset.cypher`.
+3. En directo, `../queries/01_supply_chain_zero_day.cypher` (parte A para insertar, parte G para el reset).
