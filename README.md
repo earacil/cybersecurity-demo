@@ -1,6 +1,6 @@
 # Cybersecurity Demo — Neo4j para ciberseguridad
 
-> Estado (29-oct-2026): **dataset sintético generado y cargado en Aura (validado)**; **queries `01` y `02` validadas (3-nov-2026); `03` escrita, pendiente de validar en Aura**. Dashboard con pestañas de cadena de suministro (exportada de Aura) y de priorización (añadida, a importar); Bloom y el dashboard de caminos de ataque, pendientes. El modelo y el guion siguen siendo una **propuesta a validar**.
+> Estado (29-oct-2026): **dataset sintético generado y cargado en Aura (validado)**; **queries `01`, `02` y `03` (incluido GDS) y dashboard de tres pestañas validados en Aura (3-nov-2026)**. Pendientes la perspectiva de Bloom, pendientes. El modelo y el guion siguen siendo una **propuesta a validar**.
 >
 > **¿Eres una IA retomando este proyecto?** Lee primero [`CONTEXTO_IA.md`](CONTEXTO_IA.md): tiene las restricciones duras, el estado exacto, las decisiones abiertas y los próximos pasos.
 
@@ -42,8 +42,8 @@ cybersecurity-demo/
 │   ├── SCHEMA.md                  ← borrador: 7 nodos y 8 relaciones
 │   └── NOTAS_DISENO.md            ← qué dice cada fuente, qué es propuesta, limitaciones
 ├── data/                          ← dataset sintético (CSV + generador + validador + carga); ver data/README.md
-├── queries/                       ← .cypher por caso de uso (`01` y `02` validadas; `03` a validar en Aura); ver queries/README.md
-├── dashboards/                    ← un dashboard con 2 pestañas (cadena de suministro, priorización); falta caminos de ataque
+├── queries/                       ← .cypher por caso de uso (validadas en Aura); ver queries/README.md
+├── dashboards/                    ← un dashboard con 3 pestañas (cadena de suministro, priorización, caminos de ataque), validado
 └── bloom/                         ← (vacío) perspectiva de Bloom
 ```
 

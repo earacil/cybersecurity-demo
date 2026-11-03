@@ -2,9 +2,9 @@
 // 03_attack_paths_gds.cypher — Caso 3 · Análisis de caminos de ataque (+ GDS como complemento)
 // Demo de ciberseguridad con Neo4j · AuraDB + Aura Graph Analytics (GDS serverless)
 //
-// ESTADO: ⚠️ A VALIDAR en Aura (29-oct-2026). La carga base sí está validada.
-//         Las cifras «esperado» salen de `python3 data/validate_dataset.py` (cálculo en Python), no de Neo4j ni de GDS.
-//         Si algo de GDS falla, las PARTES A-F y H dan el resultado completo en Cypher puro, sin sesión.
+// ESTADO: ✅ VALIDADO en Aura (3-nov-2026), incluido GDS (parte G y consultas de grafo G.1d-f y G.2d-e).
+//         Las cifras «esperado» salen de `python3 data/validate_dataset.py` (cálculo en Python).
+//         Si GDS no estuviera disponible, las PARTES A-F y H dan el resultado completo en Cypher puro, sin sesión.
 //
 // PRERREQUISITO: carga base (data/00_load_live.cypher). El día cero NO afecta a este fichero (no cambia la red).
 //
@@ -20,14 +20,14 @@
 //   · Blast radius  = todo lo que alcanza quien compromete un host.
 //   · Punto de estrangulamiento = host, identidad o regla de red por el que pasa gran parte de los caminos.
 //
-// ÍNDICE
-//   A. Caminos de las entradas a los activos críticos
-//   B. Caminos que solo existen a través de una identidad
-//   C. Blast radius y contraste entre entradas
-//   D. Activos críticos no alcanzables (lo que está bien protegido)
-//   E. Puntos de estrangulamiento en Cypher (nodos y reglas de red)
-//   F. What-if: ¿qué pasa si corto aquí?
-//   G. GDS (complemento): betweenness (centralidad) y Louvain (comunidades)
+// ÍNDICE   (▣ = alimenta la pestaña «Attack Paths» del dashboard; ver dashboards/DASHBOARDS_GUIDE.md)
+//   A. Caminos de las entradas a los activos críticos                 ▣ A.1
+//   B. Caminos que solo existen a través de una identidad             ▣ B.1
+//   C. Blast radius y contraste entre entradas                        ▣ C.1
+//   D. Activos críticos no alcanzables (lo que está bien protegido)   ▣ D.1
+//   E. Puntos de estrangulamiento en Cypher (nodos y reglas de red)   ▣ E.1
+//   F. What-if: ¿qué pasa si corto aquí?                              ▣ F.1 y F.3
+//   G. GDS (complemento): betweenness (centralidad) y Louvain (comunidades); G.1d-f y G.2d-e devuelven el GRAFO, no una tabla
 //   Z. Borrar las proyecciones y la sesión GDS
 //   H. Fallback en Cypher puro de las comunidades: zonas por alcanzabilidad
 //
@@ -161,7 +161,7 @@ RETURN p;
 //         Host app-pay-01 8 (73 %) · Host app-cust-01 6 (55 %) · Host app-bill-01 4 (36 %) · Identity svc-billing 4 (36 %) ·
 //         Identity svc-customer-profile 3 (27 %) · Host db-pay-01 2 (18 %) · Identity svc-payments 2 (18 %)
 //       Lectura: app-pay-01 está en 8 de 11 caminos: es el primer sitio donde cortar.
-CALL {
+CALL () {
   MATCH p = (e:Host {internet_exposed: true})-[:CAN_REACH*0..10]->(:Host)-[:STORES]->(:DataStore {crown_jewel: true})
   RETURN p
   UNION ALL
@@ -207,7 +207,7 @@ ORDER BY paths_through DESC, from_host, to_host;
 // F.1 · Quitar el permiso svc-billing → Customer PII DB
 //       esperado: dmz-api-01 4 → 3 · dmz-portal-01 1 → 0 (ya no llega a ningún activo crítico) · dmz-web-01 6 → 4
 //       Lectura: un solo permiso sobrante abría el camino del portal hasta datos personales.
-CALL {
+CALL () {
   MATCH p = (e:Host {internet_exposed: true})-[:CAN_REACH*0..10]->(:Host)-[:STORES]->(:DataStore {crown_jewel: true})
   RETURN p
   UNION ALL
@@ -243,7 +243,7 @@ ORDER BY entry_host;
 
 // F.3 · Aislar por completo el host app-pay-01 (todo camino que lo cruza)
 //       esperado: dmz-api-01 4 → 0 · dmz-portal-01 1 → 1 · dmz-web-01 6 → 2
-CALL {
+CALL () {
   MATCH p = (e:Host {internet_exposed: true})-[:CAN_REACH*0..10]->(:Host)-[:STORES]->(:DataStore {crown_jewel: true})
   RETURN p
   UNION ALL
@@ -258,7 +258,7 @@ ORDER BY entry_host;
 
 
 // =====================================================================================
-// PARTE G · GDS (COMPLEMENTO, A VALIDAR) — Aura Graph Analytics serverless, SESIÓN IMPLÍCITA
+// PARTE G · GDS (COMPLEMENTO, VALIDADO) — Aura Graph Analytics serverless, SESIÓN IMPLÍCITA
 //
 // Cómo funciona (igual que en la demo de data lineage, ya validada en esta instancia):
 //   El algoritmo NO corre en la base de datos: corre en una sesión efímera. La primera proyección crea la sesión
@@ -313,6 +313,39 @@ RETURN labels(n)[0] AS type, n.name AS name, round(score, 1) AS betweenness
 ORDER BY betweenness DESC, name
 LIMIT 10;
 
+// G.1d · GRAFO (Query tool / Bloom): los 8 nodos con más betweenness y las relaciones que hay entre ellos
+//        Necesita la proyección `attack_graph` (G.1a) y devuelve nodos y relaciones, no una tabla: se ve como grafo.
+//        esperado: 8 nodos (app-cust-01, app-bill-01, app-pay-01, mon-01, svc-billing, svc-customer-profile, db-bill-01,
+//          db-pay-01) y 9 relaciones entre ellos (7 CAN_REACH y 2 RUNS_AS). Si GDS desempata distinto, puede variar algún nodo.
+//        Lectura: es la «columna vertebral» de la red según el algoritmo. El valor numérico no se ve en el grafo (el Query tool
+//          colorea por etiqueta, no por valor): consúltalo en la tabla G.1c. Contrástalo con E.1: `mon-01` está aquí pero
+//          ningún camino a un activo crítico lo cruza.
+//        Para ver más contexto, sube el LIMIT (p. ej. 12).
+CALL gds.betweenness.stream('attack_graph')
+YIELD nodeId, score
+WHERE score > 0
+WITH nodeId, score ORDER BY score DESC, nodeId LIMIT 8                      // ← CAMBIA
+MATCH (n) WHERE id(n) = nodeId
+WITH collect(n) AS top
+UNWIND top AS a
+OPTIONAL MATCH (a)-[r:CAN_REACH|RUNS_AS|HAS_ACCESS_TO|STORES]->(b)
+WHERE b IN top
+RETURN a, r, b;
+
+// G.1e · GRAFO: la red completa que analiza GDS (los 24 nodos y 31 relaciones de la proyección)
+//        No necesita la sesión: es el mismo grafo de la BD, sin `tst-report-01` (no tiene relaciones). Sirve de fondo para
+//        explicar qué mira el algoritmo antes de enseñar el top de G.1d.
+//        esperado: 24 nodos y 31 relaciones
+MATCH (a)-[r:CAN_REACH|RUNS_AS|HAS_ACCESS_TO|STORES]->(b)
+RETURN a, r, b;
+
+// G.1f · GRAFO: el vecindario de `mon-01`, para la LECTURA HONESTA de betweenness
+//        Tres hosts (app-pay-01, app-cust-01, app-bill-01) convergen en `mon-01`, que además tiene su identidad y su
+//        almacén de logs. Por eso es «central» para el algoritmo y, aun así, ningún camino a un activo crítico pasa por él.
+//        esperado: 6 nodos (mon-01, sus 3 vecinos que llegan a él, role-monitoring y Ops Log Archive) y 5 relaciones
+MATCH (m:Host {name: 'mon-01'})-[r]-(x)   // ← CAMBIA
+RETURN m, r, x;
+
 // G.2 · LOUVAIN ----------------------------------------------------------------------
 
 // G.2a · Proyección nativa NO dirigida: solo hosts y CAN_REACH
@@ -356,6 +389,38 @@ WITH a, b, r,
 WHERE zone_a <> zone_b
 RETURN a.name AS from_host, zone_a AS from_zone, b.name AS to_host, zone_b AS to_zone, r.port AS port
 ORDER BY from_zone, to_zone, from_host;
+
+
+// G.2d · GRAFO (Query tool / Bloom): la zona (comunidad) a la que pertenece un host, con sus reglas de red
+//        Necesita la proyección `host_zones` (G.2a). El Query tool no colorea por comunidad (colorea por etiqueta), así que
+//        se enseña UNA zona cada vez: cambia el host y verás la de otro.
+//        esperado:
+//          · `jump-01`  → la zona de gestión: jump-01, app-prov-01, db-sub-01, int-web-01 (4 nodos y sus reglas de red)
+//          · `db-cust-01` o `tst-report-01` → un nodo solo (sin reglas)
+//          · `dmz-web-01` → su zona dentro de la red principal; el tamaño depende de cómo parta Louvain los 9 hosts
+//        Lectura: lo que se ve es un grupo de hosts que se hablan mucho entre sí.
+MATCH (s:Host {name: 'jump-01'})                                             // ← CAMBIA
+CALL gds.louvain.stream('host_zones')
+YIELD nodeId, communityId
+WITH s, collect({id: nodeId, community: communityId}) AS assignments
+WITH [x IN assignments WHERE x.community = head([y IN assignments WHERE y.id = id(s)]).community | x.id] AS zone_ids
+MATCH (z:Host) WHERE id(z) IN zone_ids
+OPTIONAL MATCH (z)-[r:CAN_REACH]->(b:Host)
+WHERE id(b) IN zone_ids
+RETURN z, r, b;
+
+// G.2e · GRAFO: las reglas de red que CRUZAN de una zona a otra (equivale a la tabla G.2c, pero dibujadas)
+//        esperado: depende de cómo parta Louvain los 9 hosts conectados. Si los deja en una sola zona: 0 filas
+//          (el Query tool dirá que no hay resultados; es normal, no un fallo).
+CALL gds.louvain.stream('host_zones')
+YIELD nodeId, communityId
+WITH collect({id: nodeId, community: communityId}) AS assignments
+MATCH (a:Host)-[r:CAN_REACH]->(b:Host)
+WITH a, r, b,
+     head([x IN assignments WHERE x.id = id(a)]).community AS zone_a,
+     head([x IN assignments WHERE x.id = id(b)]).community AS zone_b
+WHERE zone_a <> zone_b
+RETURN a, r, b;
 
 
 // =====================================================================================

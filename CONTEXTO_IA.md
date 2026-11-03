@@ -14,7 +14,7 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 4. **Enfoque defensivo.** Se mide exposición, se prioriza y se cortan caminos; no hay código de explotación, payloads ni procedimientos ofensivos.
 5. **No copiar código ni datos de los repositorios de referencia.** Ninguno de ellos muestra licencia (ver «Fuentes»); se usan solo como inspiración de modelo y de narrativa. Las queries y el dataset se escriben desde cero.
 6. ~~Solo guía y contexto.~~ **LEVANTADA el 29-oct-2026**: era una restricción inicial para montar el esqueleto. Ahora se construyen dataset, queries, Bloom y dashboards, por este orden (dataset primero).
-7. **Nada está validado.** Ni el modelo, ni el guion. Todo Cypher **nuevo o modificado** se trata como «a validar» hasta que la persona lo pruebe en Aura o Desktop real (el entorno del agente no tiene Neo4j ni GDS).
+7. **Validado (3-nov-2026):** carga base, las tres `queries/` (incluido GDS) y el dashboard de tres pestañas, probados por la persona en Aura. **Sin validar:** la perspectiva de Bloom y el guion con cronómetro. Todo Cypher **nuevo o modificado** se trata como «a validar» hasta que la persona lo pruebe en Aura o Desktop real (el entorno del agente no tiene Neo4j ni GDS).
 
 ## Decisiones cerradas por la persona (27-oct-2026)
 
@@ -79,8 +79,8 @@ Construir una **demo genérica, reutilizable y lo más simple posible de ciberse
 | `data-model/NOTAS_DISENO.md` | 🟡 borrador | Qué aporta cada fuente, limitaciones, qué es propuesta |
 | `AURA_SETUP.md` | 🟡 esqueleto | Requisitos previstos |
 | `data/` | 🟢 CSV generados y validados (29-oct-2026) | 18 CSV, `generate_dataset.py`, `validate_dataset.py`, `00_load_live.cypher` (validado en Aura por la persona: carga completa y recuentos correctos) y `README.md` con la historia del gancho y los resultados esperados |
-| `queries/` | ✅ `01` **validada y cerrada** y ✅ `02` **validada** (3-nov-2026) · 🟡 `03` escrita, **a validar en Aura** | 3 `.cypher` completos con cifras «esperado» calculadas por `validate_dataset.py`; `01` incluye la inserción del día cero (A) y el reset (G); `03` incluye GDS (betweenness y Louvain) con fallback en Cypher puro |
-| `dashboards/` | ✅ pestaña 1 exportada de Aura · 🟡 pestaña 2 «Risk Prioritization» añadida por el agente, a importar y comprobar (3-nov-2026) | `supply_chain_vulnerability_impact_dashboard.json` (con tarjeta de grafo «Affected Services Map», añadida por la persona) + `DASHBOARDS_GUIDE.md`; falta el de caminos de ataque |
+| `queries/` | ✅ las tres **validadas en Aura** (3-nov-2026), incluido GDS; pendientes solo las search phrases de Bloom | 3 `.cypher` completos con cifras «esperado» calculadas por `validate_dataset.py`; `01` incluye la inserción del día cero (A) y el reset (G); `03` incluye GDS (betweenness y Louvain) con fallback en Cypher puro |
+| `dashboards/` | ✅ 3 pestañas validadas en Aura (3-nov-2026) | `supply_chain_vulnerability_impact_dashboard.json` (cadena de suministro, priorización y caminos de ataque) + `DASHBOARDS_GUIDE.md` |
 | `bloom/` | ⬜ vacío | Solo `README.md`; el recorrido de búsqueda y expansión está en la guía (§4) y en `queries/01` F.4 |
 | `.env` | 🟡 creado, sin credenciales | Plantilla a rellenar (ignorado por git) |
 
@@ -108,7 +108,7 @@ Orden de magnitud: unos 12-15 hosts, 8-10 aplicaciones, 12-15 librerías, 15-25 
 - Consistencia estricta y un `validate_dataset.py` independiente del generador, con resultados esperados calculados fuera de Neo4j (como en `data-lineage-fs-demo`).
 
 ### 3. Queries (`queries/`)
-Escritas (29-oct-2026). Un fichero por caso de uso, literales cambiables marcados `← CAMBIA`, caminos acotados a 10, y fallback en Cypher puro para lo que use GDS. Todo «a validar» hasta probarlo en Aura. Criterio de aceptación: cada query devuelve lo que dice su comentario `esperado:`.
+Escritas (29-oct-2026) y validadas en Aura (3-nov-2026). Un fichero por caso de uso, literales cambiables marcados `← CAMBIA`, caminos acotados a 10, y fallback en Cypher puro para lo que use GDS. Criterio de aceptación: cada query devuelve lo que dice su comentario `esperado:`.
 
 ### 4. Bloom, dashboards, runbook y guía
 Perspectiva exportada del Aura real (sin inventar estilos), dashboards con las queries marcadas, guion con comandos y ensayo con cronómetro.
@@ -125,7 +125,7 @@ cybersecurity-demo/
 ├── .gitignore · .env.example
 ├── data-model/             ← SCHEMA.md (borrador) · NOTAS_DISENO.md
 ├── data/                   ← CSV, generate/validate_dataset.py, 00_load_live.cypher, README.md (escenario e historia)
-├── queries/                ← README.md + 01..03 .cypher (a validar en Aura)
+├── queries/                ← README.md + 01..03 .cypher (validadas en Aura)
 ├── bloom/                  ← README.md
 └── dashboards/             ← README.md, DASHBOARDS_GUIDE.md, supply_chain_vulnerability_impact_dashboard.json
 ```

@@ -2,7 +2,7 @@
 
 Organizado por **caso de uso**, no por tipo de nodo (mismo criterio que en `data-lineage-fs-demo`).
 
-> **Estado (3-nov-2026):** carga base y `01` y `02` **validadas en Aura** por la persona. `03` (incluido GDS) está escrita y **pendiente de validar**; no se ha ejecutado todavía. Todas las cifras «esperado» de los comentarios salen de `python3 ../data/validate_dataset.py` (cálculo en Python independiente de Neo4j), no de una ejecución real. Los repositorios de referencia no tienen licencia: las queries se escriben desde cero.
+> **Estado (3-nov-2026):** carga base y las tres queries (`01`, `02` y `03`, incluido GDS) **validadas en Aura** por la persona. Pendientes solo las search phrases de Bloom. Todas las cifras «esperado» de los comentarios salen de `python3 ../data/validate_dataset.py` (cálculo en Python independiente de Neo4j), no de una ejecución real. Los repositorios de referencia no tienen licencia: las queries se escriben desde cero.
 
 **Orden de ejecución (importa):** carga base → `01` (A. insertar el día cero) → resto de `01` → `02` → `03`. Las partes `02`.G y `01`.G dependen de que el día cero esté insertado o borrado, respectivamente.
 
@@ -10,7 +10,7 @@ Organizado por **caso de uso**, no por tipo de nodo (mismo criterio que en `data
 |---|---|---|
 | `01_supply_chain_zero_day.cypher` | 1 · Cadena de suministro | A. foto e **inserción del día cero** (Log4Shell, desde `../data/zero_day_*.csv`) · B. aplicaciones afectadas y nivel de dependencia · C. hosts afectados y expuestos · D. servicios de negocio · E. qué librería actualizar primero · F. visuales y **Bloom** (buscar la vulnerabilidad y expandir) · **G. reset**. Las partes B, C, D y E alimentan el dashboard `../dashboards/supply_chain_vulnerability_impact_dashboard.json` |
 | `02_vulnerability_prioritization.cypher` | 2 · Priorización | A. ranking por CVSS · B. contexto del host (alcanzabilidad e impacto) · C. riesgo por pareja vulnerabilidad-host con ranking · D. el contraste «Critical aislada» frente a «Medium expuesta» · E. camino que lo justifica (Bloom) · F. acciones por librería · G. efecto del día cero |
-| `03_attack_paths_gds.cypher` | 3 · Caminos de ataque | A. caminos entrada→activo crítico · B. solo por identidad · C. blast radius · D. activos críticos no alcanzables · E. puntos de estrangulamiento (nodos y reglas de red) · F. what-if · **G. GDS** (betweenness y Louvain) · Z. borrar sesión · H. fallback en Cypher puro |
+| `03_attack_paths_gds.cypher` | 3 · Caminos de ataque | A. caminos entrada→activo crítico · B. solo por identidad · C. blast radius · D. activos críticos no alcanzables · E. puntos de estrangulamiento (nodos y reglas de red) · F. what-if · **G. GDS** (betweenness y Louvain, en tabla y como grafo) · Z. borrar sesión · H. fallback en Cypher puro |
 
 ## Convenciones
 

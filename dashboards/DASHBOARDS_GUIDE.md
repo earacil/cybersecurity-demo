@@ -6,7 +6,7 @@
 |---|---|---|---|---|---|
 | **Supply Chain - Vulnerability Impact** | `supply_chain_vulnerability_impact_dashboard.json` | 1 · Cadena de suministro | `queries/01_supply_chain_zero_day.cypher`, partes B, C, D y E (▣) | 1 filtro + 4 contadores + 3 tablas + 1 gráfico de barras + 1 grafo | `$vulnerability` |
 
-Un solo dashboard con **dos pestañas**: «Supply Chain Vulnerability Impact» (caso 1) y «Risk Prioritization» (caso 2, más abajo). Solo **Cypher puro**: no usa GDS ni Aura Graph Analytics. El dashboard de caminos de ataque (caso 3) queda para más adelante.
+Un solo dashboard con **tres pestañas**: «Supply Chain Vulnerability Impact» (caso 1), «Risk Prioritization» (caso 2) y «Attack Paths» (caso 3), cada una descrita más abajo. Solo **Cypher puro**: no usa GDS ni Aura Graph Analytics.
 
 ## Qué muestra
 
@@ -67,7 +67,7 @@ Con `CVE-2021-44228`: aplicaciones a 3 niveles (`payments-core`, `payments-gatew
 
 # Pestaña 2 · «Risk Prioritization» (caso 2)
 
-> ⚠️ **Pestaña añadida al JSON por el agente (3-nov-2026), pendiente de importar y comprobar en Aura.** Las queries de las partes A, B, C, F y G son copias de `queries/02` (validadas por la persona); las de los contadores, la leyenda y la C.2 son nuevas y no se han ejecutado. El resto del JSON (la pestaña 1, tal como la exportó Aura) no se ha tocado. Si algo no sale, o se retoca en Aura, se vuelve a exportar y se sustituye el fichero.
+> **Pestaña generada por el agente a partir de `queries/02` e importada y validada en Aura por la persona (3-nov-2026).** Las partes A, B, C, F y G son copias de `queries/02`; los contadores, la leyenda y la C.2 son propios del dashboard. Si se retoca en Aura, se vuelve a exportar y se sustituye el fichero.
 
 **Historia que cuenta, de arriba abajo:** «un scanner ordena por CVSS; nosotros añadimos contexto (alcance, impacto, explotación) y el orden cambia. La "Critical" aislada baja y la "Medium" expuesta sube. Y de ahí sale una lista de acciones.» **No es un parámetro: no usa el filtro `$vulnerability`.** Los literales `SYN-0002`, `tst-report-01`, `SYN-0003` y `CVE-2021-44228` están dentro de las queries (en D y G, igual que en `queries/02`).
 
@@ -116,3 +116,55 @@ La lectura es la misma en los dos estados: la «Critical» está muy abajo y la 
 - Las tarjetas de la pestaña 2 con literales (`SYN-0002`, `tst-report-01`, `SYN-0003`, `CVE-2021-44228`) no responden al filtro de la pestaña 1.
 - Si no hay día cero insertado, la tabla 6 sale vacía y los dos contadores de contexto cambian (ver tabla anterior).
 - Las tarjetas de riesgo recalculan todo el grafo cada una (15 hosts, 61-67 parejas): con este tamaño es instantáneo, pero no lo copies tal cual a un grafo grande.
+
+
+---
+
+# Pestaña 3 · «Attack Paths» (caso 3)
+
+> **Pestaña generada por el agente a partir de `queries/03` e importada y validada en Aura por la persona (3-nov-2026).** Las tablas son copias de `queries/03` (A.1, B.1, C.1, D.1, E.1, F.1, F.3); los contadores son propios del dashboard. Usa solo las partes A a F (Cypher puro); GDS no.
+
+**Historia:** «de las puertas a Internet hasta lo que más importa: qué caminos hay, cuáles no ve un cortafuegos, dónde se concentran y qué pasa si corto.» **No usa el selector `$vulnerability`.** No hay literales de entrada: son los mismos para siempre (los que dice el grafo).
+
+**Código de color:** amarillo = camino por identidad (invisible para un cortafuegos); rojo = lo que se quiere señalar (`svc-billing`, `app-pay-01`); verde = lo bien protegido, o una entrada que el corte deja sin caminos.
+
+| Fila | Tarjeta | Query origen | Qué explica |
+|---|---|---|---|
+| 0 | 4 contadores: puertas a Internet, caminos, activos críticos alcanzables, mayor estrangulamiento | variantes de una celda de A.1, D.1 y E.1 | El resumen del caso: 3 · 11 · 2 of 3 · `app-pay-01` (8 of 11 paths) |
+| 1 | **1.** Todos los caminos | A.1 | 11 caminos, uno por fila: 2 por red y 9 por identidad (amarillo), con la ruta salto a salto |
+| 2 | **2.** Solo por identidad | B.1 | 7 caminos sin ruta de red hasta el dato; `svc-billing` en rojo |
+| 3 | **3.** Blast radius | C.1 | Hosts, identidades, almacenes y activos críticos que alcanza cada entrada |
+| 3 | **4.** El activo que nadie alcanza | D.1 | `Subscriber Registry`, en verde |
+| 4 | **5.** Estrangulamiento | E.1 | Por cuántos de los 11 caminos pasa cada host e identidad; `app-pay-01` en rojo (8, el 73 %) |
+| 5 | **6.** What-if: quitar el permiso `svc-billing` → `Customer PII DB` | F.1 | Caminos antes y después, por entrada; en verde las entradas que quedan sin caminos |
+| 5 | **7.** What-if: aislar `app-pay-01` | F.3 | Lo mismo, aislando el host |
+
+**No están en el dashboard:** E.2 (reglas de red) y F.2 (cortar una regla), que dan lo mismo por regla que E.1 y F.1 por host, y toda la parte G (GDS). Los caminos dibujados (A.2, A.3, B.2, C.2, D.2) se enseñan en Bloom o en el Query tool.
+
+## Cifras esperadas
+
+No dependen del día cero ni de ningún parámetro. Calculadas sobre los CSV (`validate_dataset.py`), no en Aura.
+
+| Tarjeta | Esperado |
+|---|---|
+| Puertas a Internet | 3 (`dmz-web-01`, `dmz-api-01`, `dmz-portal-01`) |
+| Caminos | 11 (2 por red a `Card Ledger`, 9 por identidad): `dmz-web-01` 6, `dmz-api-01` 4, `dmz-portal-01` 1 |
+| Activos críticos alcanzables | 2 of 3 (`Customer PII DB`, `Card Ledger`) |
+| Mayor estrangulamiento | `app-pay-01 (8 of 11 paths)` |
+| Tabla 2 (solo identidad) | 7 filas, todas a `Customer PII DB` (`dmz-web-01` 4, `dmz-api-01` 2, `dmz-portal-01` 1) |
+| Tabla 3 (blast radius) | `dmz-api-01` y `dmz-web-01`: 6 hosts · 4 identidades · 4 almacenes · 2 críticos; `dmz-portal-01`: 3 · 2 · 3 · 1 |
+| Tabla 4 (no alcanzable) | 1 fila: `Subscriber Registry` |
+| Tabla 5 (estrangulamiento) | `app-pay-01` 8 (73 %) · `app-cust-01` 6 (55 %) · `app-bill-01` 4 (36 %) · `svc-billing` 4 (36 %) · `svc-customer-profile` 3 (27 %) · `db-pay-01` 2 · `svc-payments` 2 |
+| Tabla 6 (what-if permiso) | `dmz-api-01` 4 → 3 · `dmz-portal-01` 1 → **0** · `dmz-web-01` 6 → 4 |
+| Tabla 7 (what-if aislar) | `dmz-api-01` 4 → **0** · `dmz-portal-01` 1 → 1 · `dmz-web-01` 6 → 2 |
+
+## Cómo contarlo (3-4 min)
+
+Las frases de cada tarjeta, en `GUIA_EJECUCION.md` §6 («Qué decir en cada tarjeta · pestaña 3»). Hilo: contadores → todos los caminos → los de identidad → alcance de cada puerta → lo protegido → dónde se concentran → qué pasa si corto.
+
+## Cuidado
+
+- Las tablas usan la sintaxis `CALL () { ... }` / `CALL (e) { ... }` (Neo4j 5.23 o superior), la misma que `queries/03`. Si tu instancia fuera más antigua, las tarjetas fallarían: habría que reescribirlas con `CALL { WITH ... }`.
+- Las columnas `route` (listas de nombres) se ven bien en tabla, pero son largas: si ensucian la pantalla, usa el ancho completo (la tarjeta 1 ya lo tiene) o quita la columna en la tarjeta.
+- En las dos tarjetas de what-if, el verde se activa con `paths_after = 0`: si aparece una fila verde sin querer, revisa que la columna sea numérica.
+- «Guardar» en Aura reordena y renombra algo del JSON: al volver a exportar, sustituye el fichero del repo.
